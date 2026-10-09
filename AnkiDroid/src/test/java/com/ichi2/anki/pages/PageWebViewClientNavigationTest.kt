@@ -114,4 +114,46 @@ class PageWebViewClientNavigationTest : PageWebViewClientTestBase() {
                 targetContext.assertNoActivityStarted(address)
             }
         }
+
+    @Test
+    fun `subframe navigation to external destinations is blocked without launching an activity`() =
+        withStatistics { view, client ->
+            for (scheme in listOf("http", "https")) {
+                val address = "$scheme://example.org/graphs"
+                assertTrue(client.shouldOverrideUrlLoading(view, request(address, mainFrame = false)), address)
+                targetContext.assertNoActivityStarted(address)
+            }
+        }
+
+    @Test
+    fun `local paths outside bundled pages are blocked without launching an activity`() =
+        withStatistics { view, client ->
+            val pageUrl = assertNotNull(view.url).toUri()
+            for (path in listOf("/", "/unknown", "/graphs-other", "/_anki/test", "/_app/env.js")) {
+                val address =
+                    pageUrl
+                        .buildUpon()
+                        .path(path)
+                        .build()
+                        .toString()
+                assertTrue(client.shouldOverrideUrlLoading(view, request(address)), address)
+                targetContext.assertNoActivityStarted(address)
+            }
+        }
+
+    @Test
+    fun `200 extremely long name used only to test the path limit on windows padding padding padding padding padding padding padding padding padding padding padding paddingxxxxx`() =
+        withStatistics { view, client ->
+            for (scheme in listOf("http", "https")) {
+                val address = "$scheme://example.org/graphs"
+                assertTrue(client.shouldOverrideUrlLoading(view, request(address, mainFrame = false)), address)
+                targetContext.assertNoActivityStarted(address)
+            }
+        }
+
+    @Test
+    fun `control copy must fail`() =
+        withStatistics { _, _ ->
+            kotlin.test.fail("expected failure")
+        }
 }
