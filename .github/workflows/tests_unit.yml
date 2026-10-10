@@ -58,17 +58,17 @@ jobs:
             // and we want macos-14 because it has Apple Silicon and is faster
             // if you alter this, also alter it above in the workflow_dispatch options list
             let osArray = ["ubuntu-latest", "macos-14", "windows-latest"]
-            
+
             // by default, we will run one iteration on each selected system
             let iterationArray = [1]
-            
+
             // workflow dispatch will be a drop-down of different options
             if (context.eventName === "workflow_dispatch") {
               const inputs = ${{ toJSON(inputs) }}
               osArray = JSON.parse(inputs['operatingSystems'])
               console.log('inputs is: ' + JSON.stringify(inputs))
               console.log('osArray is: ' + osArray)
-              
+
               const iterationInput = inputs.iterations
               console.log('iterations input is: ' + iterationInput)
               // this will expand for example with input 5 => [1, 2, 3, 4, 5]
@@ -136,6 +136,15 @@ jobs:
         with:
           fetch-depth: 50
 
+      # EXPERIMENT: switch off Windows long path support and print the value before and after
+      - name: Disable Windows long paths (experiment)
+        if: contains(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled
+          Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled -Value 0
+          Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled
+
       - name: Configure JDK
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
@@ -165,7 +174,8 @@ jobs:
 
         # update workflows/README.md when modifying this step
       - name: Run Unit Tests
-        run: ./gradlew jacocoUnitTestReport --daemon
+        # EXPERIMENT: only run the one test class that matters, to make each job much shorter
+        run: ./gradlew :AnkiDroid:testPlayDebugUnitTest --tests "com.ichi2.anki.pages.PageWebViewClientNavigationTest" --daemon
 
 
       # Only runs:
