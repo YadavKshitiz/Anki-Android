@@ -143,12 +143,8 @@ class PageWebViewClientNavigationTest : PageWebViewClientTestBase() {
 
     @Test
     fun `200 extremely long name used only to test the path limit on windows padding padding padding padding padding padding padding padding padding padding padding paddingxxxxx`() =
-        withStatistics { view, client ->
-            for (scheme in listOf("http", "https")) {
-                val address = "$scheme://example.org/graphs"
-                assertTrue(client.shouldOverrideUrlLoading(view, request(address, mainFrame = false)), address)
-                targetContext.assertNoActivityStarted(address)
-            }
+        withStatistics { _, _ ->
+            kotlin.test.fail("tmpdir=" + System.getProperty("java.io.tmpdir") + " extFiles=" + targetContext.getExternalFilesDir(null))
         }
 
     @Test
